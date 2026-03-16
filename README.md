@@ -1,5 +1,4 @@
-# Instacart Market Basket Analysis
-## E-Commerce BI Project
+# Instacart Market Basket Analysis (BI Data Analysis Project)
 
 ---
 
@@ -45,12 +44,13 @@ The dataset is sourced from ![Kaggle: Instacart Market Basket Analysis](https://
 ### Project Structure
 ```project/
 ├── data/
-│ ├── raw/ # Original Instacart CSV files downloaded here (not tracked/large file size)
-│ └── clean/ # Cleaned and merged dataset(s)
-├── notebooks/ # Jupyter notebooks for analysis
-├── scripts/ # Python scripts for ETL and modeling
-├── reports/ # Charts, plots, and dashboard screenshots
-└── README.md # Project documentation
+│ ├── raw/          # Original Instacart CSV files downloaded here (not tracked/large file size)
+│ └── clean/        # Cleaned and merged dataset (not tracked/large file size)
+├── images/         # Screenshots
+├── notebooks/      # Jupyter notebooks for analysis
+├── scripts/        # Python scripts for ETL and modeling
+├── reports/        # Charts, plots, and dashboard
+└── README.md       # Project documentation
 ```
 
 # Featured Report Images
