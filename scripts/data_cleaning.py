@@ -18,9 +18,14 @@ def clean_data(data):
     # Drop missing data
     merged = merged.dropna(subset=['user_id', 'product_id','order_number'])
 
+    # Feature engineering - total items per order/total orders  per user
+    merged['total_items_in_order'] = merged.groupby('order_id')['order_id'].transform('count')
+    merged['total_orders_by_user'] = merged.groupby('user_id')['order_number'].transform('max')
+
     # Reset the index
     merged = merged.reset_index(drop=True)
 
+    # Return merged data
     return merged
 
 def save_clean_data(df, filename="clean_data.csv"):
