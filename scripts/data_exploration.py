@@ -1,6 +1,6 @@
 import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
+import pandas as pd
 import seaborn as sns
 from scipy import stats
 from sklearn.linear_model import LinearRegression
@@ -72,21 +72,25 @@ def detect_outliers(df, name):
         print(f"Outliers for {column}: {df[column][outliers]}")
 
 def correlation_matrix(df, name):
-    print(f"\n{name} - Correlation Matrix")
-    # Select only numeric columns
-    numeric_df = df.select_dtypes(include=["float64", "int64"])
+    print(f"\n{name} - Correlation Matrix (price, freight_value, quantity)")
 
-    # Check if there are numeric columns before computing correlation
-    if numeric_df.empty:
-        print(f"No numerical columns available for correlation in {name}.")
+    # Get the relevant columns
+    cols = ["price", "freight_value", "quantity"]
+    available_cols = [c for c in cols if c in df.columns]
+
+    if not available_cols:
+        print(f"No available columns available found in {name}.")
         return
 
-    # Compute the correlation matrix
+    numeric_df = df[available_cols].apply(pd.to_numeric, errors="coerce")
+
+    numeric_df = numeric_df.dropna()
+
     corr_matrix = numeric_df.corr()
     print(corr_matrix)
 
     # Plot the correlation matrix
-    plt.figure(figsize=(10, 8))
+    plt.figure(figsize=(20, 10))
     sns.heatmap(corr_matrix, annot=True, cmap="coolwarm", fmt=".2f")
     plt.tight_layout()
     plt.show()
@@ -182,12 +186,13 @@ def explore_data(orders_df, order_items_df, products_df, customers_df, order_pay
     plot_boxplot(orders_df, "Orders")
 
     detect_outliers(orders_df, "Orders")
-    correlation_matrix(orders_df, "Orders")
+    correlation_matrix(order_items_df, "Orders")
 
     plot_histogram(products_df, "Products")
     plot_boxplot(products_df, "Products")
 
     linear_regression(order_items_df, 'price', 'freight_value')
+
 
 if __name__ == "__main__":
     # Load the data
