@@ -29,6 +29,7 @@ def run_exploration():
 
     # Logistic regression
     explorer.predict_reorder()
+    explorer.product_demand_vs_reorder()
 
 class DataExplorer:
     def __init__(self, df, sample_size=None):
@@ -183,5 +184,35 @@ class DataExplorer:
         plt.ylabel("Actual")
         plt.title("Confusion Matrix")
         plt.show()
+
+    def product_demand_vs_reorder(self):
+
+        print("\nAnalyzing product demand vs reorder probability...")
+
+        product_stats = self.df.groupby(
+            ['product_id', 'product_name']
+        ).agg(
+            total_purchases=('product_id', 'count'),
+            reorder_probability=('reordered', 'mean')
+        ).reset_index()
+
+        plt.figure(figsize=(10, 6))
+
+        sns.scatterplot(
+            data=product_stats,
+            x='total_purchases',
+            y='reorder_probability',
+            alpha=0.6
+        )
+
+        plt.xlabel("Total Purchases")
+        plt.ylabel("Reorder Probability")
+        plt.title("Product Demand vs Reorder Probability")
+
+        plt.show()
+
+        print(product_stats.sort_values("total_purchases", ascending=False).head(10))
+
+        return product_stats
 
 
