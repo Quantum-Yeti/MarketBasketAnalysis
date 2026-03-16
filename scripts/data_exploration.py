@@ -2,7 +2,32 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from matplotlib import pyplot as plt
-from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import LinearRegression, LogisticRegression
+from sklearn.metrics import classification_report, roc_auc_score, confusion_matrix
+from sklearn.model_selection import train_test_split
+
+
+def run_exploration():
+    # Load clean data
+    df = pd.read_csv("../data/clean/clean_data.csv")
+
+    explorer = DataExplorer(df, sample_size=100000)
+
+    explorer.overview()
+    explorer.missing_values()
+    explorer.descript_stats()
+    explorer.plot_histograms()
+    explorer.plot_boxplot()
+    explorer.correlation_matrix()
+
+    pivot_user = explorer.pivot_table_summary('user_id')
+    pivot_product = explorer.pivot_table_summary('product_name')
+
+    # Linear Regression: 'total_items_in_order' vs 'add_to_cart_order'
+    explorer.linear_regression('total_items_in_order', 'add_to_cart_order')
+
+    # Logistic regression
+    explorer.predict_reorder()
 
 class DataExplorer:
     def __init__(self, df, sample_size=None):
@@ -120,22 +145,42 @@ class DataExplorer:
 
         return prob
 
+    def predict_reorder(self, feature_cols=None):
+        if 'reordered' not in self.df.columns:
+            print("Column 'reordered' not found.")
+            return
 
-if __name__ == '__main__':
-    # Load clean data
-    df = pd.read_csv("../data/clean/clean_data.csv")
+        # Default features if none provided
+        if feature_cols is None:
+            feature_cols = ['total_items_in_order', 'total_orders_by_user', 'add_to_cart_order']
 
-    explorer = DataExplorer(df, sample_size=100000)
+        # Drop rows with missing features
+        df_model = self.df.dropna(subset=feature_cols + ['reordered'])
 
-    explorer.overview()
-    explorer.missing_values()
-    explorer.descript_stats()
-    explorer.plot_histograms()
-    explorer.plot_boxplot()
-    explorer.correlation_matrix()
+        X = df_model[feature_cols]
+        y = df_model['reordered']
 
-    pivot_user = explorer.pivot_table_summary('user_id')
-    pivot_product = explorer.pivot_table_summary('product_name')
+        # Train-test split
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-    # Regression: 'total_items_in_order' vs 'add_to_cart_order'
-    explorer.linear_regression('total_items_in_order', 'add_to_cart_order')
+        # Logistic regression model
+        model = LogisticRegression(max_iter=1000)
+        model.fit(X_train, y_train)
+        y_pred = model.predict(X_test)
+        y_prob = model.predict_proba(X_test)[:, 1]
+
+        # Metrics
+        print("\nClassification Report")
+        print(classification_report(y_test, y_pred))
+        print("ROC AUC:", roc_auc_score(y_test, y_prob))
+
+        # Optional confusion matrix heatmap
+        cm = confusion_matrix(y_test, y_pred)
+        plt.figure(figsize=(6, 4))
+        sns.heatmap(cm, annot=True, fmt="d", cmap='Blues')
+        plt.xlabel("Predicted")
+        plt.ylabel("Actual")
+        plt.title("Confusion Matrix")
+        plt.show()
+
+
