@@ -6,7 +6,6 @@ from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.metrics import classification_report, roc_auc_score, confusion_matrix
 from sklearn.model_selection import train_test_split
 
-
 def run_exploration():
     # Load clean data
     df = pd.read_csv("../data/clean/clean_data.csv")
