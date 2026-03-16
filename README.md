@@ -8,6 +8,8 @@ This project analyzes the Instacart dataset to uncover patterns in customer purc
 ### Dataset
 The dataset is sourced from ![Kaggle: Instacart Market Basket Analysis](https://www.kaggle.com/datasets/psparks/instacart-market-basket-analysis)
 
+*These are large files therefore you must download the raw data and place the csv files into the /data/raw folder directory.
+
 
 | Table                     | Description                                                     |
 |---------------------------|-----------------------------------------------------------------|
