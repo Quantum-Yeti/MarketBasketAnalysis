@@ -1,5 +1,8 @@
 import pandas as pd
 import os
+from mlxtend.frequent_patterns import apriori, association_rules
+from mlxtend.preprocessing import TransactionEncoder
+
 
 def clean_data(data):
     # Merge prior orders and train orders
@@ -72,3 +75,49 @@ def export_powerbi_tables(df):
     department_stats.to_csv("../data//department_stats.csv", index=False)
 
     print("Power BI tables exported.")
+
+def generate_apriori(df, sample_orders=50000, top_products=200, min_support=0.01, min_confidence=0.3):
+    """
+    Memory-efficient Apriori for large datasets.
+    - df: cleaned dataframe with 'order_id' and 'product_name'
+    - sample_orders: number of orders to sample for analysis
+    - top_products: only consider top N products by purchase frequency
+    - min_support: minimum support for frequent itemsets
+    - min_confidence: minimum confidence for association rules
+    """
+
+    # Sample orders (memory-friendly)
+    unique_orders = df['order_id'].drop_duplicates()
+    sampled_orders = unique_orders.sample(n=min(sample_orders, len(unique_orders)), random_state=42)
+    df_sample = df[df['order_id'].isin(sampled_orders)]
+
+    # Keep only top products
+    top_prod_list = df_sample['product_name'].value_counts().head(top_products).index
+    df_sample = df_sample[df_sample['product_name'].isin(top_prod_list)]
+
+    # Convert to list of transactions
+    transactions = df_sample.groupby('order_id')['product_name'].apply(list).tolist()
+
+    # TransactionEncoder with sparse matrix
+    te = TransactionEncoder()
+    te_ary = te.fit(transactions).transform(transactions, sparse=True)  # Sparse = low memory
+    basket_sparse = pd.DataFrame.sparse.from_spmatrix(te_ary, columns=te.columns_)
+
+    # Frequent itemsets
+    frequent_itemsets = apriori(basket_sparse, min_support=min_support, use_colnames=True)
+
+    # Association rules
+    rules = association_rules(frequent_itemsets, metric='confidence', min_threshold=min_confidence)
+
+    # Clean rules for Power BI
+    rules['antecedents'] = rules['antecedents'].apply(lambda x: ', '.join(list(x)))
+    rules['consequents'] = rules['consequents'].apply(lambda x: ', '.join(list(x)))
+    pbi_rules = rules[['antecedents', 'consequents', 'support', 'confidence', 'lift']] \
+        .sort_values(by='lift', ascending=False)
+
+    # Export CSV for Power BI
+    output_path = "../data/apriori_rules.csv"
+    pbi_rules.to_csv(output_path, index=False)
+    print(f"Apriori rules exported to {output_path}")
+
+    return pbi_rules
